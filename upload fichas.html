@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Upload Fichas</title>
+<style>body{font-family:sans-serif;background:#0D1B2A;color:#fff;padding:20px;text-align:center}
+button{padding:16px 32px;background:#FF8C00;color:#fff;border:none;border-radius:12px;font-size:18px;font-weight:700;cursor:pointer;margin:10px}
+#log{text-align:left;margin-top:20px;font-size:13px}
+.ok{color:#27AE60}.err{color:#E74C3C}.info{color:#F39C12}
+</style></head><body>
+<h2 style="color:#FF8C00">Upload Fichas Tecnicas</h2>
+<p>Dona Maria Express - 37 fichas</p>
+<div id="status" style="color:#F39C12;font-size:14px;margin:10px">Pronto pra enviar</div>
+<button onclick="iniciar()">ENVIAR FICHAS</button>
+<div id="log"></div>
+
+<script>
+var fichas = [{"num": 1, "nome": "Contrafilé", "ingredientes": [{"nome": "Bife contrafilé", "qtd": 0.22, "preco_kg": 47.89, "custo": 10.54}, {"nome": "Arroz", "qtd": 0.16, "preco_kg": 3.04, "custo": 0.49}, {"nome": "Feijão", "qtd": 0.15, "preco_kg": 7.2, "custo": 1.08}, {"nome": "Batata frita", "qtd": 0.1, "preco_kg": 7.0, "custo": 0.7}, {"nome": "Salada mista", "qtd": 0.05, "preco_kg": 10.0, "custo": 0.5}, {"nome": "Cebola", "qtd": 0.02, "preco_kg": 3.92, "custo": 0.08}, {"nome": "Alho", "qtd": 0.006, "preco_kg": 39.58, "custo": 0.24}, {"nome": "Sal", "qtd": 0.01, "preco_kg": 5.49, "custo": 0.05}], "custo_total": 13.67}, {"num": 2, "nome": "Filé 4 Queijos", "ingredientes": [{"nome": "Filé mignon", "qtd": 0.2, "preco_kg": 64.18, "custo": 12.84}, {"nome": "Molho 4 queijos", "qtd": 0.15, "preco_kg": 25.0, "custo": 3.75}, {"nome": "Arroz", "qtd": 0.16, "preco_kg": 3.04, "custo": 0.49}, {"nome": "Batata frita", "qtd": 0.1, "preco_kg": 7.0, "custo": 0.7}, {"nome": "Alho", "qtd": 0.006, "preco_kg": 39.58, "custo": 0.24}, {"nome": "Sal", "qtd": 0.01, "preco_kg": 5.49, "custo": 0.05}], "custo_total": 18.06}, {"num": 3, "nome": "Filé Dona Maria", "ingredientes": [{"nome": "Filé mignon", "qtd": 0.2, "preco_kg": 64.18, "custo": 12.84}, {"nome": "Arroz", "qtd": 0.16, "preco_kg": 3.04, "custo": 0.49}, {"nome": "Batata palha", "qtd": 0.04, "preco_kg": 30.0, "custo": 1.2}, {"nome": "Bacon", "qtd": 0.03, "preco_kg": 37.99, "custo": 1.14}, {"nome": "Cebola picada", "qtd": 0.03, "preco_kg": 3.92, "custo": 0.12}, {"nome": "Alho dourado", "qtd": 0.005, "preco_kg": 39.58, "custo": 0.2}, {"nome": "Vinagrete", "qtd": 0.04, "preco_kg": 8.0, "custo": 0.32}, {"nome": "Ovo", "qtd": 1.0, "preco_kg": 0.75, "custo": 0.75}], "custo_total": 17.05}, {"num": 4, "nome": "Parmegiana de Filé", "ingredientes": [{"nome": "Filé mignon", "qtd": 0.2, "preco_kg": 64.18, "custo": 12.84}, {"nome": "Arroz", "qtd": 0.16, "preco_kg": 3.04, "custo": 0.49}, {"nome": "Purê", "qtd": 0.1, "preco_kg": 10.0, "custo": 1.0}, {"nome": "Mussarela", "qtd": 0.04, "preco_kg": 44.99, "custo": 1.8}, {"nome": "Molho vermelho", "qtd": 0.2, "preco_kg": 10.0, "custo": 2.0}], "custo_total": 18.12}, {"num": 5, "nome": "Parmegiana de Frango", "ingredientes": [{"nome": "Frango (peito)", "qtd": 0.2, "preco_kg": 20.99, "custo": 4.2}, {"nome": "Arroz", "qtd": 0.16, "preco_kg": 3.04, "custo": 0.49}, {"nome": "Purê", "qtd": 0.1, "preco_kg": 10.0, "custo": 1.0}, {"nome": "Mussarela", "qtd": 0.04, "preco_kg": 44.99, "custo": 1.8}, {"nome": "Molho vermelho", "qtd": 0.2, "preco_kg": 10.0, "custo": 2.0}], "custo_total": 9.48}, {"num": 6, "nome": "Strogonoff de Frango", "ingredientes": [{"nome": "Strogonoff frango", "qtd": 0.3, "preco_kg": 28.0, "custo": 8.4}, {"nome": "Arroz", "qtd": 0.16, "preco_kg": 3.04, "custo": 0.49}, {"nome": "Batata palha", "qtd": 0.03, "preco_kg": 30.0, "custo": 0.9}], "custo_total": 9.79}, {"num": 7, "nome": "Strogonoff de Carne", "ingredientes": [{"nome": "Strogonoff carne", "qtd": 0.3, "preco_kg": 28.0, "custo": 8.4}, {"nome": "Arroz", "qtd": 0.16, "preco_kg": 3.04, "custo": 0.49}, {"nome": "Batata palha", "qtd": 0.03, "preco_kg": 30.0, "custo": 0.9}], "custo_total": 9.79}, {"num": 8, "nome": "Coxa e Sobrecoxa", "ingredientes": [{"nome": "Coxa sobrecoxa", "qtd": 0.2, "preco_kg": 17.49, "custo": 3.5}, {"nome": "Arroz", "qtd": 0.16, "preco_kg": 3.04, "custo": 0.49}, {"nome": "Batata frita", "qtd": 0.1, "preco_kg": 7.0, "custo": 0.7}, {"nome": "Vinagrete", "qtd": 0.047, "preco_kg": 8.0, "custo": 0.38}], "custo_total": 5.06}, {"num": 9, "nome": "Picanha Grelhada", "ingredientes": [{"nome": "Picanha", "qtd": 0.25, "preco_kg": 66.49, "custo": 16.62}, {"nome": "Farofa", "qtd": 0.04, "preco_kg": 10.0, "custo": 0.4}, {"nome": "Vinagrete", "qtd": 0.04, "preco_kg": 8.0, "custo": 0.32}, {"nome": "Arroz (biro biro)", "qtd": 0.16, "preco_kg": 3.04, "custo": 0.49}, {"nome": "Bacon (biro biro)", "qtd": 0.04, "preco_kg": 37.99, "custo": 1.52}, {"nome": "Ovo", "qtd": 1.0, "preco_kg": 0.75, "custo": 0.75}], "custo_total": 20.1}, {"num": 10, "nome": "Chapa de Filé", "ingredientes": [{"nome": "Filé mignon", "qtd": 0.4, "preco_kg": 64.18, "custo": 25.67}, {"nome": "Cebola", "qtd": 0.08, "preco_kg": 3.92, "custo": 0.31}, {"nome": "Tomate", "qtd": 0.1, "preco_kg": 7.04, "custo": 0.7}, {"nome": "Mussarela", "qtd": 0.1, "preco_kg": 44.99, "custo": 4.5}, {"nome": "Batata/mandioca", "qtd": 0.3, "preco_kg": 7.0, "custo": 2.1}], "custo_total": 33.29}, {"num": 11, "nome": "Chapa de Picanha", "ingredientes": [{"nome": "Picanha", "qtd": 0.4, "preco_kg": 66.49, "custo": 26.6}, {"nome": "Cebola", "qtd": 0.08, "preco_kg": 3.92, "custo": 0.31}, {"nome": "Tomate", "qtd": 0.1, "preco_kg": 7.04, "custo": 0.7}, {"nome": "Mussarela", "qtd": 0.1, "preco_kg": 44.99, "custo": 4.5}, {"nome": "Batata/mandioca", "qtd": 0.3, "preco_kg": 7.0, "custo": 2.1}], "custo_total": 34.21}, {"num": 12, "nome": "Hambúrguer Dona Bacon", "ingredientes": [{"nome": "Hambúrguer", "qtd": 1.0, "preco_kg": 8.0, "custo": 8.0}, {"nome": "Pão", "qtd": 1.0, "preco_kg": 2.81, "custo": 2.81}, {"nome": "Mussarela", "qtd": 0.037, "preco_kg": 44.99, "custo": 1.66}, {"nome": "Bacon", "qtd": 0.02, "preco_kg": 37.99, "custo": 0.76}, {"nome": "Tomate (1 fatia)", "qtd": 1.0, "preco_kg": 0.35, "custo": 0.35}, {"nome": "Alface (1 folha)", "qtd": 1.0, "preco_kg": 0.5, "custo": 0.5}, {"nome": "Batata frita", "qtd": 0.15, "preco_kg": 7.0, "custo": 1.05}], "custo_total": 15.13}, {"num": 13, "nome": "Camarão Internacional", "ingredientes": [{"nome": "Camarão", "qtd": 0.15, "preco_kg": 64.9, "custo": 9.74}, {"nome": "Creme de leite", "qtd": 0.27, "preco_kg": 16.3, "custo": 4.4}, {"nome": "Arroz", "qtd": 0.28, "preco_kg": 3.04, "custo": 0.85}, {"nome": "Batata palha", "qtd": 0.15, "preco_kg": 30.0, "custo": 4.5}, {"nome": "Mussarela", "qtd": 0.13, "preco_kg": 44.99, "custo": 5.85}, {"nome": "Molho vermelho", "qtd": 0.13, "preco_kg": 10.0, "custo": 1.3}, {"nome": "Molho branco", "qtd": 0.06, "preco_kg": 14.0, "custo": 0.84}, {"nome": "Ervilha", "qtd": 0.02, "preco_kg": 13.3, "custo": 0.27}, {"nome": "Presunto", "qtd": 0.02, "preco_kg": 22.0, "custo": 0.44}], "custo_total": 28.18}, {"num": 14, "nome": "Panelinha Camarão", "ingredientes": [{"nome": "Camarão", "qtd": 0.28, "preco_kg": 64.9, "custo": 18.17}, {"nome": "Arroz", "qtd": 0.4, "preco_kg": 3.04, "custo": 1.22}, {"nome": "Molho vermelho", "qtd": 0.2, "preco_kg": 10.0, "custo": 2.0}, {"nome": "Creme de leite", "qtd": 0.16, "preco_kg": 16.3, "custo": 2.61}, {"nome": "Queijo", "qtd": 0.05, "preco_kg": 44.99, "custo": 2.25}, {"nome": "Requeijão", "qtd": 0.02, "preco_kg": 21.11, "custo": 0.42}, {"nome": "Azeite dendê", "qtd": 0.015, "preco_kg": 37.8, "custo": 0.57}], "custo_total": 27.23}, {"num": 15, "nome": "Bobó de Camarão", "ingredientes": [{"nome": "Camarão", "qtd": 0.14, "preco_kg": 64.9, "custo": 9.09}, {"nome": "Mandioca", "qtd": 0.16, "preco_kg": 12.49, "custo": 2.0}, {"nome": "Azeite dendê", "qtd": 0.02, "preco_kg": 37.8, "custo": 0.76}, {"nome": "Leite de coco", "qtd": 0.01, "preco_kg": 9.98, "custo": 0.1}, {"nome": "Vinagrete/pimentão", "qtd": 0.03, "preco_kg": 8.0, "custo": 0.24}], "custo_total": 12.18}, {"num": 16, "nome": "Camarão Empanado", "ingredientes": [{"nome": "Camarão", "qtd": 0.3, "preco_kg": 64.9, "custo": 19.47}, {"nome": "Farinha trigo", "qtd": 0.05, "preco_kg": 5.3, "custo": 0.27}, {"nome": "Panko", "qtd": 0.05, "preco_kg": 20.0, "custo": 1.0}], "custo_total": 20.74}, {"num": 17, "nome": "Risoto de Camarão", "ingredientes": [{"nome": "Camarão", "qtd": 0.14, "preco_kg": 64.9, "custo": 9.09}, {"nome": "Arroz arbório", "qtd": 0.17, "preco_kg": 18.0, "custo": 3.06}, {"nome": "Parmesão", "qtd": 0.02, "preco_kg": 84.9, "custo": 1.7}, {"nome": "Molho vermelho", "qtd": 0.06, "preco_kg": 10.0, "custo": 0.6}, {"nome": "Leite de coco", "qtd": 0.03, "preco_kg": 9.98, "custo": 0.3}], "custo_total": 14.74}, {"num": 18, "nome": "Risoto Funghi", "ingredientes": [{"nome": "Filé mignon", "qtd": 0.16, "preco_kg": 64.18, "custo": 10.27}, {"nome": "Arroz arbório", "qtd": 0.17, "preco_kg": 18.0, "custo": 3.06}, {"nome": "Funghi/champignon", "qtd": 0.03, "preco_kg": 46.45, "custo": 1.39}, {"nome": "Parmesão", "qtd": 0.02, "preco_kg": 84.9, "custo": 1.7}], "custo_total": 16.42}, {"num": 19, "nome": "Risoto Carne Sol c/ Abóbora", "ingredientes": [{"nome": "Carne com abóbora", "qtd": 0.18, "preco_kg": 22.0, "custo": 3.96}, {"nome": "Arroz arbório", "qtd": 0.17, "preco_kg": 18.0, "custo": 3.06}, {"nome": "Parmesão", "qtd": 0.02, "preco_kg": 84.9, "custo": 1.7}, {"nome": "Couve", "qtd": 0.02, "preco_kg": 8.0, "custo": 0.16}], "custo_total": 8.88}, {"num": 20, "nome": "Panelinha Carne de Sol", "ingredientes": [{"nome": "Carne de sol", "qtd": 0.26, "preco_kg": 54.05, "custo": 14.05}, {"nome": "Maionese", "qtd": 0.2, "preco_kg": 12.0, "custo": 2.4}, {"nome": "Requeijão", "qtd": 0.09, "preco_kg": 21.11, "custo": 1.9}, {"nome": "Calabresa", "qtd": 0.06, "preco_kg": 23.99, "custo": 1.44}, {"nome": "Creme de leite", "qtd": 0.05, "preco_kg": 16.3, "custo": 0.82}, {"nome": "Queijo", "qtd": 0.05, "preco_kg": 44.99, "custo": 2.25}, {"nome": "Banana terra", "qtd": 1.0, "preco_kg": 1.5, "custo": 1.5}, {"nome": "Ovo frito", "qtd": 1.0, "preco_kg": 0.75, "custo": 0.75}], "custo_total": 25.11}, {"num": 21, "nome": "Costelinha Caranha Porção", "ingredientes": [{"nome": "Costelinha", "qtd": 0.5, "preco_kg": 28.9, "custo": 14.45}, {"nome": "Molho alho", "qtd": 0.05, "preco_kg": 15.0, "custo": 0.75}], "custo_total": 15.2}, {"num": 22, "nome": "Costelinha Caranha Executiva", "ingredientes": [{"nome": "Costelinha", "qtd": 0.25, "preco_kg": 28.9, "custo": 7.22}, {"nome": "Arroz", "qtd": 0.16, "preco_kg": 3.04, "custo": 0.49}, {"nome": "Pirão", "qtd": 0.1, "preco_kg": 8.0, "custo": 0.8}, {"nome": "Vinagrete", "qtd": 0.06, "preco_kg": 8.0, "custo": 0.48}, {"nome": "Farofa", "qtd": 0.04, "preco_kg": 10.0, "custo": 0.4}, {"nome": "Batata frita", "qtd": 0.1, "preco_kg": 7.0, "custo": 0.7}], "custo_total": 10.09}, {"num": 23, "nome": "Parmegiana Palito", "ingredientes": [{"nome": "Filé mignon (cubos)", "qtd": 0.3, "preco_kg": 64.18, "custo": 19.25}, {"nome": "Molho vermelho", "qtd": 0.2, "preco_kg": 10.0, "custo": 2.0}, {"nome": "Mussarela", "qtd": 0.08, "preco_kg": 44.99, "custo": 3.6}], "custo_total": 24.85}, {"num": 24, "nome": "Calabresa Acebolada", "ingredientes": [{"nome": "Calabresa", "qtd": 0.4, "preco_kg": 23.99, "custo": 9.6}, {"nome": "Cebola", "qtd": 0.04, "preco_kg": 3.92, "custo": 0.16}], "custo_total": 9.75}, {"num": 25, "nome": "Batata Frita Simples", "ingredientes": [{"nome": "Batata frita", "qtd": 0.5, "preco_kg": 7.0, "custo": 3.5}, {"nome": "Molho rosé", "qtd": 0.05, "preco_kg": 12.0, "custo": 0.6}], "custo_total": 4.1}, {"num": 26, "nome": "Batata Bacon + Cheddar", "ingredientes": [{"nome": "Batata frita", "qtd": 0.5, "preco_kg": 7.0, "custo": 3.5}, {"nome": "Bacon", "qtd": 0.06, "preco_kg": 37.99, "custo": 2.28}, {"nome": "Cheddar", "qtd": 0.04, "preco_kg": 20.0, "custo": 0.8}], "custo_total": 6.58}, {"num": 27, "nome": "Isca de Peixe", "ingredientes": [{"nome": "Peixe", "qtd": 0.4, "preco_kg": 35.0, "custo": 14.0}, {"nome": "Molho alho", "qtd": 0.05, "preco_kg": 15.0, "custo": 0.75}], "custo_total": 14.75}, {"num": 28, "nome": "Isca de Frango", "ingredientes": [{"nome": "Frango", "qtd": 0.4, "preco_kg": 20.99, "custo": 8.4}, {"nome": "Molho 4 queijos", "qtd": 0.05, "preco_kg": 25.0, "custo": 1.25}], "custo_total": 9.65}, {"num": 29, "nome": "Camarão Alho e Óleo", "ingredientes": [{"nome": "Camarão", "qtd": 0.4, "preco_kg": 64.9, "custo": 25.96}], "custo_total": 25.96}, {"num": 30, "nome": "Frango a Passarinho", "ingredientes": [{"nome": "Frango", "qtd": 1.0, "preco_kg": 12.99, "custo": 12.99}, {"nome": "Molho alho", "qtd": 0.05, "preco_kg": 15.0, "custo": 0.75}, {"nome": "Limão", "qtd": 1.0, "preco_kg": 0.5, "custo": 0.5}, {"nome": "Alface", "qtd": 1.0, "preco_kg": 0.5, "custo": 0.5}, {"nome": "Tomate (2 fatias)", "qtd": 2.0, "preco_kg": 0.35, "custo": 0.7}], "custo_total": 15.44}, {"num": 31, "nome": "Meia Fritas + Isca Frango", "ingredientes": [{"nome": "Batata frita", "qtd": 0.2, "preco_kg": 7.0, "custo": 1.4}, {"nome": "Isca frango", "qtd": 0.4, "preco_kg": 20.99, "custo": 8.4}], "custo_total": 9.8}, {"num": 32, "nome": "Meia Fritas + Frango Passarinho", "ingredientes": [{"nome": "Batata frita", "qtd": 0.2, "preco_kg": 7.0, "custo": 1.4}, {"nome": "Frango passarinho", "qtd": 1.0, "preco_kg": 12.99, "custo": 12.99}], "custo_total": 14.39}, {"num": 33, "nome": "Meia Fritas + Fr. Pass. + Mandioca", "ingredientes": [{"nome": "Batata frita", "qtd": 0.2, "preco_kg": 7.0, "custo": 1.4}, {"nome": "Frango passarinho", "qtd": 1.0, "preco_kg": 12.99, "custo": 12.99}, {"nome": "Mandioca", "qtd": 0.3, "preco_kg": 12.49, "custo": 3.75}], "custo_total": 18.14}, {"num": 34, "nome": "Bolinho Abóbora (10un)", "ingredientes": [{"nome": "Bolinho abóbora", "qtd": 10.0, "preco_kg": 1.39, "custo": 13.9}, {"nome": "Molho alho", "qtd": 0.05, "preco_kg": 15.0, "custo": 0.75}], "custo_total": 14.65}, {"num": 35, "nome": "Pastelzinho (15un)", "ingredientes": [{"nome": "Pastelzinho", "qtd": 15.0, "preco_kg": 0.6, "custo": 9.0}, {"nome": "Molho alho", "qtd": 0.05, "preco_kg": 15.0, "custo": 0.75}], "custo_total": 9.75}, {"num": 36, "nome": "Camarão Recheado (12un)", "ingredientes": [{"nome": "Camarão recheado", "qtd": 12.0, "preco_kg": 2.5, "custo": 30.0}, {"nome": "Molho alho", "qtd": 0.05, "preco_kg": 15.0, "custo": 0.75}], "custo_total": 30.75}, {"num": 37, "nome": "Croquete de Costela (10un)", "ingredientes": [{"nome": "Croquete costela", "qtd": 10.0, "preco_kg": 1.2, "custo": 12.0}, {"nome": "Molho alho", "qtd": 0.05, "preco_kg": 15.0, "custo": 0.75}], "custo_total": 12.75}];
+
+function log(msg, cls) {
+  document.getElementById("log").innerHTML += '<p class="' + (cls||"info") + '">' + msg + '</p>';
+}
+
+function iniciar() {
+  var st = document.getElementById("status");
+  st.textContent = "Conectando ao Firebase...";
+  log("Iniciando...", "info");
+
+  try {
+    var s1 = document.createElement("script");
+    s1.src = "https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js";
+    s1.onload = function() {
+      log("Firebase App carregado", "ok");
+      var s2 = document.createElement("script");
+      s2.src = "https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js";
+      s2.onload = function() {
+        log("Firebase Firestore carregado", "ok");
+        try {
+          firebase.initializeApp({
+            apiKey: "AIzaSyCakQu2hZkuA9lepyXPNs9ldydwEcHVPeQ",
+            authDomain: "caixa-restaurante.firebaseapp.com",
+            projectId: "caixa-restaurante",
+            storageBucket: "caixa-restaurante.firebasestorage.app",
+            messagingSenderId: "161559449251",
+            appId: "1:161559449251:web:e10ef70290a7ef2e7db916"
+          });
+          var db = firebase.firestore();
+          log("Firebase conectado!", "ok");
+          st.textContent = "Enviando " + fichas.length + " fichas...";
+          enviar(db, 0, 0);
+        } catch(e) {
+          log("Erro Firebase: " + e.message, "err");
+          st.textContent = "ERRO!";
+        }
+      };
+      s2.onerror = function() { log("Erro ao carregar Firestore", "err"); };
+      document.head.appendChild(s2);
+    };
+    s1.onerror = function() { log("Erro ao carregar Firebase", "err"); };
+    document.head.appendChild(s1);
+  } catch(e) {
+    log("Erro: " + e.message, "err");
+  }
+}
+
+function enviar(db, i, ok) {
+  if (i >= fichas.length) {
+    document.getElementById("status").textContent = "CONCLUIDO! " + ok + " fichas enviadas!";
+    document.getElementById("status").style.color = "#27AE60";
+    log("CONCLUIDO! " + ok + "/" + fichas.length + " fichas!", "ok");
+    return;
+  }
+  var f = fichas[i];
+  var id = "ficha-" + f.num;
+  db.collection("emp_dona-maria-_fichas").doc(id).set({
+    id: id,
+    num: f.num,
+    nome: f.nome,
+    custoTotal: f.custo_total,
+    ingredientes: f.ingredientes
+  }).then(function() {
+    ok++;
+    log(ok + ". " + f.nome + " - R$ " + f.custo_total.toFixed(2), "ok");
+    enviar(db, i + 1, ok);
+  }).catch(function(e) {
+    log("ERRO " + f.nome + ": " + e.message, "err");
+    enviar(db, i + 1, ok);
+  });
+}
+</script>
+</body></html>
