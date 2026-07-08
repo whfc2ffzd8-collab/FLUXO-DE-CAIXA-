@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Fechamento Mensal - Apex Gestao</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,sans-serif;background:#0D1B2A;color:#E0E0E0;padding:12px}
+.hd{background:linear-gradient(135deg,#1F4E79,#4472C4);border-radius:12px;padding:16px;margin-bottom:12px;text-align:center}
+.ctrl{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.btn{padding:10px 18px;border-radius:9px;border:none;color:#fff;font-weight:700;font-size:13px;cursor:pointer}
+.bx{background:#1B2838;border-radius:12px;padding:14px;margin-bottom:12px}
+.sb{background:#0D1B2A;border-radius:10px;padding:10px;margin-bottom:8px}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:12px}
+.kc{background:#0D1B2A;border-radius:10px;padding:12px;text-align:center}
+table{width:100%;border-collapse:collapse;font-size:10px;margin-top:6px}
+th{padding:6px;background:#1F4E79;color:#fff;text-align:left}
+td{padding:5px;border-bottom:1px solid #1F2D3D}
+select,input{padding:8px;border-radius:7px;border:1px solid #333;background:#0D1B2A;color:#fff;font-size:13px}
+.tg{display:inline-block;padding:2px 7px;border-radius:10px;font-size:9px;font-weight:600}
+@media print{
+  body{background:#fff;color:#000;padding:0;font-size:9px}
+  .ctrl,.no-print{display:none!important}
+  .bx{background:#fff;border:1px solid #ccc;break-inside:avoid;padding:10px;margin-bottom:8px}
+  .sb{background:#f5f5f5;border:1px solid #ddd}
+  .kc{background:#f0f4f8;border:1px solid #ccc}
+  .hd{background:#1F4E79!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  th{background:#1F4E79!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  td{border-bottom:1px solid #ccc}
+  table{font-size:8px}
+  .tg{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div class="hd">
+<h1 style="font-size:18px;color:#fff">APEX GESTÃO</h1>
+<p style="color:#D6E4F0;font-size:11px">Fechamento Mensal</p>
+<p style="color:#FF8C00;font-size:13px;font-weight:700;margin-top:4px" id="empNome">Dona Maria Express</p>
+</div>
+<div class="ctrl no-print">
+<input type="password" id="senha" placeholder="Senha" style="width:100px">
+<button onclick="entrar()" class="btn" style="background:#FF8C00">Entrar</button>
+<select id="mesRef" style="display:none"></select>
+<button onclick="gerar()" class="btn" style="background:#27AE60;display:none" id="btnGerar">Gerar Fechamento</button>
+<button onclick="window.print()" class="btn" style="background:#9B59B6;display:none" id="btnPdf">Salvar PDF</button>
+</div>
+<div id="rel"></div>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyCakQu2hZkuA9lepyXPNs9ldydwEcHVPeQ",authDomain:"caixa-restaurante.firebaseapp.com",projectId:"caixa-restaurante",storageBucket:"caixa-restaurante.firebasestorage.app",messagingSenderId:"161559449251",appId:"1:161559449251:web:e10ef70290a7ef2e7db916"});
+var db=firebase.firestore();
+var MS=["Janeiro","Fevereiro","Marco","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+var emp="dona-maria-";
+function px(){return"emp_"+emp+"_"}
+function fmt(v){return(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
+function ml(k){if(!k)return"";var p=k.split("-");return MS[parseInt(p[1])-1]+" "+p[0]}
+function mn(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")}
+
+function entrar(){
+  var s=document.getElementById("senha").value;
+  if(s!=="93051301")return alert("Senha incorreta!");
+  document.getElementById("mesRef").style.display="inline-block";
+  document.getElementById("btnGerar").style.display="inline-block";
+  document.getElementById("btnPdf").style.display="inline-block";
+  // Preencher meses
+  var sel=document.getElementById("mesRef");
+  var d=new Date(),opts="";
+  for(var i=0;i<12;i++){
+    var m=d.getMonth()-i,a=d.getFullYear();while(m<0){m+=12;a--}
+    var k=a+"-"+String(m+1).padStart(2,"0");
+    opts+='<option value="'+k+'">'+ml(k)+'</option>';
+  }
+  sel.innerHTML=opts;
+}
+
+function gerar(){
+  var mesRef=document.getElementById("mesRef").value;
+  var el=document.getElementById("rel");
+  el.innerHTML='<p style="color:#FF8C00;text-align:center;padding:20px">Gerando fechamento...</p>';
+  
+  // Carregar 3 meses pra comparação
+  var meses=[];
+  var p=mesRef.split("-");var mm=parseInt(p[1]),aa=parseInt(p[0]);
+  for(var i=2;i>=0;i--){
+    var mx=mm-i,ax=aa;while(mx<=0){mx+=12;ax--}
+    meses.push(ax+"-"+String(mx).padStart(2,"0"));
+  }
+  
+  var p2=px();
+  Promise.all([
+    db.collection(p2+"lancamentos").get(),
+    db.collection(p2+"contas").get(),
+    db.collection(p2+"fichas").get(),
+    db.collection(p2+"config").doc("saldos").get()
+  ]).then(function(rs){
+    var lcs=[];rs[0].forEach(function(d){lcs.push(d.data())});
+    var cts=[];rs[1].forEach(function(d){cts.push(d.data())});
+    var fichas=[];rs[2].forEach(function(d){fichas.push(d.data())});
+    var saldos=rs[3].exists?rs[3].data().value||{}:{};
+    
+    // Processar cada mês
+    var dadosMes={};
+    meses.forEach(function(mes){
+      var lc=lcs.filter(function(l){return l.data&&l.data.substring(0,7)===mes});
+      var tE=0,tS=0,tC=0,cmv=0,rh=0;
+      var catE={},catS={};
+      lc.forEach(function(l){
+        if(l.tipo==="E"){tE+=l.valor||0;var ce=l.categoria||"Outros";catE[ce]=(catE[ce]||0)+l.valor}
+        else if(l.tipo==="S"){tS+=l.valor||0;var cs=l.categoria||"Outros";catS[cs]=(catS[cs]||0)+l.valor}
+        else if(l.tipo==="C"){tC+=l.valor||0;var cc=l.categoria||"Outros";catS[cc]=(catS[cc]||0)+l.valor}
+        var c=l.categoria||"";
+        if(c.indexOf("CMV")===0)cmv+=l.valor||0;
+        if(["Salario","Pro-labore","Adiantamento","Vale Transporte","Diaria","Ajuda Custo","Ferias/Rescisao"].indexOf(c)>=0)rh+=l.valor||0;
+      });
+      var resultado=tE-tS;
+      var margem=tE>0?(resultado/tE*100):0;
+      var pCmv=tE>0?(cmv/tE*100):0;
+      var pRh=tE>0?(rh/tE*100):0;
+      var s0=saldos[mes]||0;
+      var pendentes=cts.filter(function(c){return c.status==="pendente"&&c.vencimento&&c.vencimento.substring(0,7)===mes});
+      var tPend=0;pendentes.forEach(function(c){tPend+=c.valor||0});
+      
+      dadosMes[mes]={tE:tE,tS:tS,tC:tC,cmv:cmv,rh:rh,resultado:resultado,margem:margem,pCmv:pCmv,pRh:pRh,s0:s0,sf:s0+tE-tS,catE:catE,catS:catS,lc:lc,pendentes:tPend,qtdLanc:lc.length};
+    });
+    
+    renderRelatorio(meses,dadosMes,mesRef,fichas);
+  });
+}
+
+function renderRelatorio(meses,dados,mesRef,fichas){
+  var d=dados[mesRef];
+  var m1=dados[meses[0]]||{tE:0};
+  var m2=dados[meses[1]]||{tE:0};
+  var m3=dados[meses[2]]||{tE:0};
+  
+  function seta(atual,anterior){if(!anterior)return"";var dif=atual-anterior;var pct=anterior>0?((dif/anterior)*100).toFixed(0):"0";return dif>0?'<span style="color:#27AE60">&#9650;'+pct+'%</span>':dif<0?'<span style="color:#E74C3C">&#9660;'+pct+'%</span>':'<span style="color:#888">&#9644;</span>'}
+  function corKpi(val,meta,inv){var ok=inv?val<=meta:val>=meta;return ok?"#27AE60":"#E74C3C"}
+  
+  var h='';
+  // TITULO
+  h+='<div class="bx" style="text-align:center;border:2px solid #FF8C00"><h2 style="color:#FF8C00;font-size:16px">FECHAMENTO MENSAL</h2><p style="font-size:14px;color:#fff;margin-top:4px">'+ml(mesRef)+'</p><p style="font-size:10px;color:#888">Gerado em '+new Date().toLocaleDateString("pt-BR")+'</p></div>';
+  
+  // KPIs
+  h+='<div class="kpi">';
+  h+='<div class="kc" style="border:2px solid '+(d.margem>=10?"#27AE60":"#E74C3C")+'"><div style="font-size:9px;color:#888">MARGEM LIQUIDA</div><div style="font-size:24px;font-weight:700;color:'+(d.margem>=10?"#27AE60":"#E74C3C")+'">'+d.margem.toFixed(1)+'%</div><div style="font-size:9px;color:#888">Meta: 10-20%</div></div>';
+  h+='<div class="kc" style="border:2px solid '+corKpi(d.pCmv,40,true)+'"><div style="font-size:9px;color:#888">CMV</div><div style="font-size:24px;font-weight:700;color:'+corKpi(d.pCmv,40,true)+'">'+d.pCmv.toFixed(1)+'%</div><div style="font-size:9px;color:#888">Meta: 30-40%</div></div>';
+  h+='<div class="kc" style="border:2px solid '+corKpi(d.pRh,25,true)+'"><div style="font-size:9px;color:#888">RH</div><div style="font-size:24px;font-weight:700;color:'+corKpi(d.pRh,25,true)+'">'+d.pRh.toFixed(1)+'%</div><div style="font-size:9px;color:#888">Meta: 18-25%</div></div>';
+  h+='<div class="kc" style="border:2px solid #4472C4"><div style="font-size:9px;color:#888">FATURAMENTO</div><div style="font-size:20px;font-weight:700;color:#4472C4">'+fmt(d.tE)+'</div><div style="font-size:9px">'+seta(d.tE,m2.tE)+'</div></div>';
+  h+='<div class="kc" style="border:2px solid '+(d.resultado>=0?"#27AE60":"#E74C3C")+'"><div style="font-size:9px;color:#888">RESULTADO</div><div style="font-size:20px;font-weight:700;color:'+(d.resultado>=0?"#27AE60":"#E74C3C")+'">'+fmt(d.resultado)+'</div><div style="font-size:9px;color:#888">'+d.qtdLanc+' lancamentos</div></div>';
+  h+='<div class="kc" style="border:2px solid #F39C12"><div style="font-size:9px;color:#888">SALDO FINAL</div><div style="font-size:20px;font-weight:700;color:#F39C12">'+fmt(d.sf)+'</div></div>';
+  h+='</div>';
+  
+  // COMPARATIVO 3 MESES
+  h+='<div class="bx"><h3 style="font-size:13px;color:#9B59B6;margin-bottom:8px">COMPARATIVO 3 MESES</h3>';
+  h+='<table><thead><tr><th>Indicador</th>';
+  meses.forEach(function(m){h+='<th style="text-align:right">'+ml(m)+'</th>'});
+  h+='<th style="text-align:center">Var</th></tr></thead><tbody>';
+  var indicadores=[
+    {n:"Faturamento",k:"tE",cor:"#27AE60"},
+    {n:"Saidas",k:"tS",cor:"#E74C3C"},
+    {n:"CMV (R$)",k:"cmv",cor:"#E74C3C"},
+    {n:"CMV %",k:"pCmv",pct:true},
+    {n:"RH (R$)",k:"rh",cor:"#E74C3C"},
+    {n:"RH %",k:"pRh",pct:true},
+    {n:"Resultado",k:"resultado",cor:"#27AE60"},
+    {n:"Margem %",k:"margem",pct:true},
+    {n:"Contas Pendentes",k:"pendentes",cor:"#F39C12"}
+  ];
+  indicadores.forEach(function(ind){
+    h+='<tr><td style="font-weight:600">'+ind.n+'</td>';
+    meses.forEach(function(m){
+      var v=dados[m]?dados[m][ind.k]||0:0;
+      h+='<td style="text-align:right;color:'+(ind.cor||"#fff")+'">'+(ind.pct?v.toFixed(1)+"%":fmt(v))+'</td>';
+    });
+    var v1=dados[meses[1]]?dados[meses[1]][ind.k]||0:0;
+    var v2=dados[meses[2]]?dados[meses[2]][ind.k]||0:0;
+    h+='<td style="text-align:center">'+seta(v2,v1)+'</td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  
+  // DRE SIMPLIFICADO
+  h+='<div class="bx"><h3 style="font-size:13px;color:#4472C4;margin-bottom:8px">DRE - DEMONSTRATIVO DE RESULTADO</h3>';
+  h+='<table><thead><tr><th>Categoria</th><th style="text-align:right">Valor</th><th style="text-align:center">% Fat</th></tr></thead><tbody>';
+  h+='<tr style="background:rgba(39,174,96,.1)"><td colspan="3" style="font-weight:700;color:#27AE60;padding:6px">RECEITAS</td></tr>';
+  Object.keys(d.catE).sort(function(a,b){return d.catE[b]-d.catE[a]}).forEach(function(c){
+    h+='<tr><td style="padding-left:16px">'+c+'</td><td style="text-align:right;color:#27AE60">'+fmt(d.catE[c])+'</td><td style="text-align:center;color:#888">'+(d.tE>0?(d.catE[c]/d.tE*100).toFixed(1):0)+'%</td></tr>';
+  });
+  h+='<tr style="border-top:2px solid #27AE60"><td style="font-weight:700;color:#27AE60">TOTAL RECEITAS</td><td style="text-align:right;font-weight:700;color:#27AE60">'+fmt(d.tE)+'</td><td style="text-align:center;font-weight:700;color:#27AE60">100%</td></tr>';
+  
+  h+='<tr style="background:rgba(231,76,60,.1)"><td colspan="3" style="font-weight:700;color:#E74C3C;padding:6px">DESPESAS E CUSTOS</td></tr>';
+  Object.keys(d.catS).sort(function(a,b){return d.catS[b]-d.catS[a]}).forEach(function(c){
+    var tot=d.catS[c];
+    h+='<tr><td style="padding-left:16px">'+c+'</td><td style="text-align:right;color:#E74C3C">'+fmt(tot)+'</td><td style="text-align:center;color:#888">'+(d.tE>0?(tot/d.tE*100).toFixed(1):0)+'%</td></tr>';
+  });
+  var totalDesp=d.tS+d.tC;
+  h+='<tr style="border-top:2px solid #E74C3C"><td style="font-weight:700;color:#E74C3C">TOTAL DESPESAS</td><td style="text-align:right;font-weight:700;color:#E74C3C">'+fmt(totalDesp)+'</td><td style="text-align:center;font-weight:700;color:#E74C3C">'+(d.tE>0?(totalDesp/d.tE*100).toFixed(1):0)+'%</td></tr>';
+  
+  h+='<tr style="background:rgba(255,140,0,.1);border-top:3px solid #FF8C00"><td style="font-weight:700;color:#FF8C00;font-size:12px">RESULTADO LIQUIDO</td><td style="text-align:right;font-weight:700;color:'+(d.resultado>=0?"#27AE60":"#E74C3C")+';font-size:12px">'+fmt(d.resultado)+'</td><td style="text-align:center;font-weight:700;color:#FF8C00;font-size:12px">'+d.margem.toFixed(1)+'%</td></tr>';
+  h+='</tbody></table></div>';
+  
+  // ANALISE CMV
+  h+='<div class="bx"><h3 style="font-size:13px;color:#E74C3C;margin-bottom:8px">ANALISE CMV POR CATEGORIA</h3><table><thead><tr><th>Categoria</th><th style="text-align:right">Valor</th><th style="text-align:center">% Fat</th><th style="text-align:center">Status</th></tr></thead><tbody>';
+  Object.keys(d.catS).filter(function(c){return c.indexOf("CMV")===0}).sort(function(a,b){return d.catS[b]-d.catS[a]}).forEach(function(c){
+    var v=d.catS[c];var p3=d.tE>0?(v/d.tE*100).toFixed(1):0;
+    h+='<tr><td>'+c+'</td><td style="text-align:right;color:#E74C3C">'+fmt(v)+'</td><td style="text-align:center">'+p3+'%</td><td style="text-align:center"><span class="tg" style="background:'+(p3<=10?"#27AE6022;color:#27AE60":"#E74C3C22;color:#E74C3C")+'">'+(p3<=10?"OK":"ATENCAO")+'</span></td></tr>';
+  });
+  h+='<tr style="border-top:2px solid #E74C3C"><td style="font-weight:700">TOTAL CMV</td><td style="text-align:right;font-weight:700;color:#E74C3C">'+fmt(d.cmv)+'</td><td style="text-align:center;font-weight:700">'+d.pCmv.toFixed(1)+'%</td><td style="text-align:center"><span class="tg" style="background:'+(d.pCmv<=40?"#27AE6022;color:#27AE60":"#E74C3C22;color:#E74C3C")+'">'+(d.pCmv<=40?"DENTRO DA META":"ACIMA DA META")+'</span></td></tr>';
+  h+='</tbody></table></div>';
+  
+  // RODAPE
+  h+='<div style="text-align:center;padding:12px;color:#888;font-size:10px;border-top:1px solid #333;margin-top:12px"><p>Apex Gestao - Gestao no ponto mais alto</p><p>Relatorio gerado automaticamente</p></div>';
+  
+  document.getElementById("rel").innerHTML=h;
+}
+</script>
+</body>
+</html>
