@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>Admin - Apex Gestao</title>
+<style>
+:root{--bg:#0B1623;--card:#131F30;--card2:#1A2940;--accent:#9B59B6;--green:#10B981;--red:#EF4444;--text:#E2E8F0;--muted:#64748B;--border:#1E3048}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:linear-gradient(135deg,#4A1A6B,#7C3AED);padding:16px 20px;text-align:center;border-bottom:1px solid var(--border)}
+.header h1{font-size:18px;color:#fff}
+.header .sub{font-size:11px;color:#D6BCFA;margin-top:4px}
+.content{padding:16px;max-width:500px;margin:0 auto}
+.card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid var(--border)}
+.card-title{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--accent)}
+.field{margin-bottom:10px}
+.field label{font-size:11px;color:var(--muted);margin-bottom:4px;display:block;font-weight:600}
+.field input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:#fff;font-size:14px;outline:none}
+.field input:focus{border-color:var(--accent)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{padding:12px;border-radius:12px;border:none;color:#fff;font-weight:700;font-size:14px;cursor:pointer;width:100%}
+.btn:active{opacity:.8}
+.btn-purple{background:linear-gradient(135deg,#7C3AED,#9B59B6)}
+.btn-green{background:linear-gradient(135deg,#059669,#10B981)}
+.btn-red{background:linear-gradient(135deg,#DC2626,#EF4444)}
+.btn-gray{background:#64748B}
+.item-row{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);gap:10px}
+.item-row:last-child{border:none}
+.item-icon{width:40px;height:40px;border-radius:12px;background:var(--accent)15;color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.item-info{flex:1}
+.item-name{font-size:13px;font-weight:600}
+.item-detail{font-size:10px;color:var(--muted);margin-top:2px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 24px;border-radius:12px;font-size:13px;font-weight:700;z-index:999;display:none;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.login-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.login-box{background:var(--card);border-radius:20px;padding:32px;width:100%;max-width:320px;text-align:center;border:1px solid var(--border)}
+.empty{text-align:center;padding:20px;color:var(--muted);font-size:12px}
+.badge{display:inline-block;padding:3px 8px;border-radius:8px;font-size:9px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyCakQu2hZkuA9lepyXPNs9ldydwEcHVPeQ",authDomain:"caixa-restaurante.firebaseapp.com",projectId:"caixa-restaurante",storageBucket:"caixa-restaurante.firebasestorage.app",messagingSenderId:"161559449251",appId:"1:161559449251:web:e10ef70290a7ef2e7db916"});
+var db=firebase.firestore();
+var EMPRESAS=[];
+var SENHA_ADMIN="apex2026";
+
+function toast(m){var t=document.getElementById("toast");t.textContent=m;t.style.display="block";setTimeout(function(){t.style.display="none"},2500)}
+
+function login(){
+  var s=document.getElementById("sn").value;
+  if(s!==SENHA_ADMIN)return alert("Senha incorreta!");
+  carregar();
+}
+
+function carregar(){
+  db.collection("empresas").get().then(function(sn){
+    EMPRESAS=[];sn.forEach(function(d){EMPRESAS.push(d.data())});
+    EMPRESAS.sort(function(a,b){return(a.nome||"").localeCompare(b.nome||"")});
+    render();
+  }).catch(function(){render()});
+}
+
+function render(){
+  var h='<div class="header"><h1>Painel Administrativo</h1><div class="sub">Apex Gestao — Gerenciamento de Empresas</div></div>';
+  h+='<div class="content">';
+
+  // Botão criar
+  h+='<div class="card" style="border:1px solid var(--accent)"><div class="card-title">Nova Empresa</div>';
+  h+='<div class="field"><label>Nome da Empresa</label><input id="novoNome" placeholder="Ex: Bar do Joao"></div>';
+  h+='<div class="field"><label>ID (sem espaco, sem acento)</label><input id="novoId" placeholder="ex: bar-joao" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,\'\')"></div>';
+  h+='<div class="row"><div class="field"><label>Senha Supervisor</label><input id="novoSenha" value="93051301"></div><div class="field"><label>Senha Operador</label><input id="novoSenhaOp" value="1234"></div></div>';
+  h+='<button onclick="criarEmpresa()" class="btn btn-purple" style="margin-top:6px">Criar Empresa</button></div>';
+
+  // Lista de empresas
+  h+='<div class="card"><div class="card-title">Empresas Cadastradas ('+EMPRESAS.length+')</div>';
+  if(!EMPRESAS.length){h+='<div class="empty">Nenhuma empresa cadastrada.</div>'}
+  EMPRESAS.forEach(function(e){
+    h+='<div class="item-row"><div class="item-icon">🏪</div><div class="item-info"><div class="item-name">'+e.nome+'</div><div class="item-detail">ID: '+e.id+'</div></div>';
+    h+='<button onclick="configEmpresa(\''+e.id+'\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:10px;cursor:pointer;font-weight:600">Config</button> ';
+    h+='<button onclick="excluirEmpresa(\''+e.id+'\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--red);background:transparent;color:var(--red);font-size:10px;cursor:pointer;font-weight:600">X</button>';
+    h+='</div>';
+  });
+  h+='</div>';
+
+  // Config da empresa selecionada
+  h+='<div id="configArea"></div>';
+
+  h+='<button onclick="location.reload()" class="btn btn-gray" style="margin-top:12px">Sair</button>';
+  h+='</div>';
+  document.getElementById("app").innerHTML=h;
+}
+
+function criarEmpresa(){
+  var nome=document.getElementById("novoNome").value;
+  var id=document.getElementById("novoId").value;
+  var senha=document.getElementById("novoSenha").value||"93051301";
+  var senhaOp=document.getElementById("novoSenhaOp").value||"1234";
+  if(!nome||!id)return alert("Preencha nome e ID!");
+  if(EMPRESAS.find(function(e){return e.id===id}))return alert("ID ja existe!");
+
+  var p="emp_"+id+"_";
+  Promise.all([
+    db.collection("empresas").doc(id).set({id:id,nome:nome,criadoEm:new Date().toISOString()}),
+    db.collection(p+"config").doc("senhas").set({value:{supervisor:senha,operador:senhaOp}}),
+    db.collection(p+"config").doc("saldos").set({value:{}}),
+    db.collection(p+"config").doc("taxas").set({value:{}}),
+    db.collection(p+"config").doc("cartao").set({value:{fech:30,pgto:10}}),
+    db.collection(p+"config").doc("integracoes").set({value:{ladKey:"",ifoodClientId:"",ifoodClientSecret:"",ifoodMerchantId:""}})
+  ]).then(function(){
+    toast("Empresa '"+nome+"' criada!");
+    carregar();
+  }).catch(function(e){alert("Erro: "+e.message)});
+}
+
+function excluirEmpresa(id){
+  var e=EMPRESAS.find(function(x){return x.id===id});
+  if(!confirm("Excluir empresa '"+e.nome+"'?\n\nISTO NAO APAGA OS DADOS, apenas remove da lista."))return;
+  db.collection("empresas").doc(id).delete().then(function(){
+    toast("Empresa removida!");carregar();
+  });
+}
+
+function configEmpresa(id){
+  var e=EMPRESAS.find(function(x){return x.id===id});
+  var el=document.getElementById("configArea");
+  var p="emp_"+id+"_";
+
+  el.innerHTML='<div class="card" style="border:1px solid var(--green)"><div class="card-title">Carregando config de '+e.nome+'...</div></div>';
+
+  Promise.all([
+    db.collection(p+"config").doc("senhas").get(),
+    db.collection(p+"config").doc("integracoes").get()
+  ]).then(function(rs){
+    var senhas=rs[0].exists?(rs[0].data().value||rs[0].data()):{supervisor:"93051301",operador:"1234"};
+    var integ=rs[1].exists?(rs[1].data().value||rs[1].data()):{};
+
+    var h='<div class="card" style="border:1px solid var(--green)"><div class="card-title">Configurar: '+e.nome+'</div>';
+
+    h+='<p style="font-size:12px;color:var(--accent);font-weight:700;margin-bottom:6px">Senhas</p>';
+    h+='<div class="row"><div class="field"><label>Supervisor</label><input id="cfSenha" value="'+(senhas.supervisor||"")+'"></div><div class="field"><label>Operador</label><input id="cfSenhaOp" value="'+(senhas.operador||"")+'"></div></div>';
+
+    h+='<p style="font-size:12px;color:var(--accent);font-weight:700;margin:12px 0 6px">Integracoes API</p>';
+    h+='<div class="field"><label>LAD Food API Key</label><input id="cfLad" value="'+(integ.ladKey||"")+'"></div>';
+    h+='<div class="field"><label>iFood Client ID</label><input id="cfIfCid" value="'+(integ.ifoodClientId||"")+'"></div>';
+    h+='<div class="field"><label>iFood Client Secret</label><input id="cfIfSec" value="'+(integ.ifoodClientSecret||"")+'" type="password"></div>';
+    h+='<div class="field"><label>iFood Merchant UUID</label><input id="cfIfMer" value="'+(integ.ifoodMerchantId||"")+'"></div>';
+
+    h+='<input type="hidden" id="cfEmpId" value="'+id+'">';
+    h+='<button onclick="salvarConfig()" class="btn btn-green" style="margin-top:8px">Salvar Configuracoes</button>';
+    h+='<div style="margin-top:12px;padding:10px;background:var(--card2);border-radius:10px"><p style="font-size:10px;color:var(--muted)">Link de acesso pra o cliente:</p><p style="font-size:11px;color:var(--accent);word-break:break-all;margin-top:4px">https://whfc2ffzd8-collab.github.io/FLUXO-DE-CAIXA-/teste.html</p><p style="font-size:10px;color:var(--muted);margin-top:4px">Empresa: '+e.nome+'<br>Senha supervisor: '+(senhas.supervisor||"93051301")+'<br>Senha operador: '+(senhas.operador||"1234")+'</p></div>';
+    h+='</div>';
+
+    el.innerHTML=h;
+    el.scrollIntoView({behavior:"smooth"});
+  });
+}
+
+function salvarConfig(){
+  var id=document.getElementById("cfEmpId").value;
+  var p="emp_"+id+"_";
+  var senha=document.getElementById("cfSenha").value;
+  var senhaOp=document.getElementById("cfSenhaOp").value;
+  var ladKey=document.getElementById("cfLad").value;
+  var ifCid=document.getElementById("cfIfCid").value;
+  var ifSec=document.getElementById("cfIfSec").value;
+  var ifMer=document.getElementById("cfIfMer").value;
+
+  Promise.all([
+    db.collection(p+"config").doc("senhas").set({value:{supervisor:senha,operador:senhaOp}}),
+    db.collection(p+"config").doc("integracoes").set({value:{ladKey:ladKey,ifoodClientId:ifCid,ifoodClientSecret:ifSec,ifoodMerchantId:ifMer}})
+  ]).then(function(){
+    toast("Configuracoes salvas!");
+  }).catch(function(e){alert("Erro: "+e.message)});
+}
+
+// LOGIN
+document.getElementById("app").innerHTML='<div class="login-wrap"><div class="login-box"><div style="font-size:28px;margin-bottom:8px">⚙️</div><div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:4px">Painel Admin</div><div style="font-size:11px;color:var(--muted);margin-bottom:24px">Apex Gestao</div><div class="field"><input type="password" id="sn" placeholder="Senha Admin" style="text-align:center;font-size:16px" onkeyup="if(event.keyCode===13)login()"></div><button onclick="login()" class="btn btn-purple" style="margin-top:8px">Entrar</button></div></div>';
+</script>
+</body>
+</html>
